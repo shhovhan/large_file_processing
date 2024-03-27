@@ -1,8 +1,10 @@
 from celery import Celery
 
+from config import CELERY_APP_NAME, RABBITMQ_USER, RABBITMQ_PASS
 from csv_processing.csv_processing import LargeCSVProcessor
 
-app = Celery('csv_processing', broker='amqp://guest:guest@127.0.0.1:5672//',
+app = Celery(CELERY_APP_NAME,
+             broker=f'amqp://{RABBITMQ_USER}:{RABBITMQ_PASS}@127.0.0.1:5672/',
              backend='rpc://')
 
 

@@ -1,17 +1,13 @@
 import os
-from pathlib import Path
-
 from uuid import uuid4
 
 from flask import Flask, request, jsonify, send_file
+from config import FLASK_APP_NAME, UPLOAD_FOLDER, DOWNLOAD_FOLDER
 from celery_tasks.tasks import process_large_csv_task
 
-app = Flask('csv_processing')
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
-app.config['UPLOAD_FOLDER'] = f'{BASE_DIR}/uploads'
-app.config['DOWNLOAD_FOLDER'] = f'{BASE_DIR}/downloads'
+app = Flask(FLASK_APP_NAME)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['DOWNLOAD_FOLDER'] = DOWNLOAD_FOLDER
 
 
 @app.route('/upload', methods=['POST'])
@@ -22,14 +18,18 @@ def schedule_processing():
 
     file = request.files['file']
 
-    # Save the uploaded file in common location
-    input_file_path = f'uploads/{file.filename}'
-    file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
+    # generate task id in advance to create associated input/output files
     task_id = str(uuid4())
-    output_file_path = f'downloads/{task_id}_output.csv'
-    print(task_id)
+
+    # Save the uploaded file in common location
+    input_file = f'{app.config["UPLOAD_FOLDER"]}{task_id}_input.csv'
+    file.save(input_file)
+
+    output_file = f'{app.config["DOWNLOAD_FOLDER"]}{task_id}_output.csv'
+
     # Start Celery task to handle file processing asynchronously
-    task = process_large_csv_task.apply_async((input_file_path, output_file_path), task_id=task_id)
+    task = process_large_csv_task.apply_async((input_file, output_file),
+                                              task_id=task_id)
 
     return jsonify({'task_id': task.id}), 200
 
@@ -38,7 +38,7 @@ def schedule_processing():
 def download_result(task_id):
     # Check if Celery task with task_id exists
     task = process_large_csv_task.AsyncResult(task_id)
-    print(task)
+
     if task.state == 'processing':
         return jsonify({'status': 'Processing', 'message': 'Task is still in progress'}), 202
     elif task.state == 'FAILURE':
