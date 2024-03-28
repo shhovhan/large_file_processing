@@ -6,16 +6,32 @@ logger = logging.getLogger(__name__)
 
 class LargeCSVProcessor:
     """
-    Class to read large csv files, process data and write into new file.
-    To create instance of this class, filepath should be passed to the constructor of class.
-    It will write output data in output_<input_file>.csv file
+    Class to process lar    ge CSV files.
+
+    This class provides functionality for processing CSV files in Python.
     """
     def __init__(self, input_file, output_file='output.csv'):
+        """
+        Initialize the CSVProcessor instance.
+
+        Parameters:
+        input_file (str): The path to the input CSV file.
+        output_file (str, optional): The path to the output CSV file. Default is 'output.csv'.
+        """
         self.df = None
         self.input_file = input_file
         self.output_file = output_file
 
     def process_data(self):
+        """
+        Process the CSV data.
+
+        This method reads the data from the input CSV file, processes it, and writes the processed data
+        into a new CSV file.
+
+        Parameters: None
+        Returns: None
+        """
         logger.info(f'Start processing of CSV data.')
         logger.info(f'Reading data from {self.input_file}')
 
