@@ -1,4 +1,4 @@
-# BMAT Music: CSV Processing
+# CSV Processing
 
 Project consists of two parts. CSV processing module and APIs to upload csv file and download output file.
 
